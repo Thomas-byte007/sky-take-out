@@ -27,4 +27,10 @@ public interface DishService {
      */
     void deleteBatch(List<Long> ids);
 
+    /**
+     * 菜品启售或停售
+     * @param status
+     * @param id
+     */
+    void startOrStop(Integer status, Long id);
 }
