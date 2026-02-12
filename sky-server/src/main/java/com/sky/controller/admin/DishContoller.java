@@ -1,6 +1,7 @@
 package com.sky.controller.admin;
 
 
+import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
@@ -13,9 +14,11 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/admin/dish")
@@ -25,7 +28,8 @@ public class DishContoller {
 
     @Autowired
     private DishService dishService;
-
+    @Autowired
+    private RedisTemplate redisTemplate;
     /**
      * 新增菜品
      * @param dishDTO
@@ -36,6 +40,11 @@ public class DishContoller {
     public Result save(@RequestBody DishDTO dishDTO){
         log.info("新增菜品：{}",dishDTO);
         dishService.saveWithFlavor(dishDTO);
+
+        //清理缓存数据
+        String key = "dish_" + dishDTO.getCategoryId();
+        cleanCache(key);
+
         return Result.success();
     }
 
@@ -62,6 +71,10 @@ public class DishContoller {
     public Result delete(@RequestParam List<Long> ids){
         log.info("菜品批量删除：{}",ids);
         dishService.deleteBatch(ids);
+
+        //将所有菜品缓存数据清理掉
+        cleanCache("dish_*");
+
         return Result.success();
     }
 
@@ -76,6 +89,9 @@ public class DishContoller {
     public Result startOrStop(@PathVariable Integer status,Long id){
         log.info("菜品启售或停售：{} {}",status,id);
         dishService.startOrStop(status,id);
+
+        //将所有菜品缓存数据清理掉
+        cleanCache("dish_*");
         return Result.success();
     }
 
@@ -102,6 +118,46 @@ public class DishContoller {
     public Result update(@RequestBody DishDTO dishDTO){
         log.info("修改菜品及其口味信息,{}",dishDTO);
         dishService.updateWithFlavor(dishDTO);
+
+        //将所有菜品缓存数据清理掉
+        cleanCache("dish_*");
+
         return  Result.success();
     }
+
+    @GetMapping("/list")
+    @ApiOperation("根据分类id查询菜品")
+    public Result<List<DishVO>> list(Long categoryId){
+        log.info("根据分类id查询菜品，{}",categoryId);
+        //构造redis中的key，规则：dish_分类id
+        String key = "dish_" + categoryId;
+
+        //查询redis中是否存在菜品数据
+        List<DishVO> list = (List<DishVO>) redisTemplate.opsForValue().get(key);
+        if(list!=null && list.size()>0){
+            //若存在，则直接从redis中返回数据
+            return Result.success(list);
+        }
+
+        //若不存在，则查询数据库
+        Dish dish = new Dish();
+        dish.setCategoryId(categoryId);
+        dish.setStatus(StatusConstant.ENABLE);//查询启售中的菜品
+
+        //将其放入redis中
+        list = dishService.listWithFlavor(dish);
+        redisTemplate.opsForValue().set(key,list);
+
+        return Result.success(list);
+    }
+
+    /**
+     * 清理缓存数据
+     * @param pattern
+     */
+    private void cleanCache(String pattern){
+        Set keys = redisTemplate.keys(pattern);
+        redisTemplate.delete(keys);
+    }
+
 }
