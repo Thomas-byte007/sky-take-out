@@ -11,11 +11,13 @@ import com.sky.service.UserService;
 import com.sky.utils.HttpClientUtil;
 import com.sky.utils.WeChatPayUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+@Service
 public class UserServiceImpl implements UserService {
 
     //微信登录接口服务地址
