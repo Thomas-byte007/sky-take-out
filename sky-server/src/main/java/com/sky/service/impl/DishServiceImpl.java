@@ -89,7 +89,7 @@ public class DishServiceImpl implements DishService {
         }
 
         //判断当前商品是否能直接删除--是否被套餐关联
-        List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(ids);
+        List<Long> setmealIds = setmealDishMapper.getSetmealIdByDishIds(ids);
         if(setmealIds != null &&setmealIds.size()>0){
             throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
         }
