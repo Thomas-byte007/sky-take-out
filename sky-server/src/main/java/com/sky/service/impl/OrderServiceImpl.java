@@ -18,6 +18,7 @@ import com.sky.vo.OrderSubmitVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class OrderServiceImpl implements OrderService {
      * @param ordersSubmitDTO
      * @return
      */
+    @Transactional
     public OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO) {
         //处理业务异常（地址为空，购物车为空）
         Long addressBookId = ordersSubmitDTO.getAddressBookId();
