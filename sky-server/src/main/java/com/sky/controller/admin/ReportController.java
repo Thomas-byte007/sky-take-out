@@ -84,9 +84,9 @@ public class ReportController {
      *
      * @param resp
      */
-//    @GetMapping("/export")
-//    public void exportExcel(HttpServletResponse resp) {
-//        reportService.exportExcel(resp);
-//    }
+    @GetMapping("/export")
+    public void exportExcel(HttpServletResponse resp) {
+        reportService.exportExcel(resp);
+    }
 
 }

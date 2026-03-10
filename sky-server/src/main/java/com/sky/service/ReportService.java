@@ -52,6 +52,6 @@ public interface ReportService {
      *
      * @param resp
      */
-//    void exportExcel(HttpServletResponse resp);
+    void exportExcel(HttpServletResponse resp);
 
 }
